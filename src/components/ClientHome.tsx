@@ -254,11 +254,20 @@ export default function ClientHome() {
     changeCard(nextIndex, step === 1 ? "next" : "prev");
   };
 
+  const isFormValid =
+    form.name.trim() !== "" &&
+    /^\d{10}$/.test(form.nrp.trim()) &&
+    form.gugus.trim() !== "" &&
+    form.photo !== "";
+
   const downloadCardImage = async (
     name: string,
     ref: React.RefObject<HTMLDivElement | null>,
+    fromPreview = false,
   ) => {
     if (!ref.current) return;
+    // Extra guard: prevent download from preview if form is not fully valid
+    if (fromPreview && !isFormValid) return;
     setIsDownloading(true);
     try {
       const element =
@@ -471,10 +480,10 @@ export default function ClientHome() {
                 />
               </div>
 
-              {form.name && /^\d{10}$/.test(form.nrp.trim()) && form.gugus && form.photo && (
+              {isFormValid && (
                 <button
-                  onClick={() => downloadCardImage(form.name, previewCardRef)}
-                  disabled={isDownloading}
+                  onClick={() => downloadCardImage(form.name, previewCardRef, true)}
+                  disabled={isDownloading || !isFormValid}
                   className="flex items-center justify-center gap-2 px-6 py-3 bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-500/50 text-white font-medium rounded-xl shadow-lg transition duration-200 active:scale-95 cursor-pointer">
                   <svg
                     className="w-5 h-5"
