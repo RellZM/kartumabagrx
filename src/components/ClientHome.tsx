@@ -471,7 +471,7 @@ export default function ClientHome() {
                 />
               </div>
 
-              {form.name && form.nrp && form.gugus && form.photo && (
+              {form.name && /^\d{10}$/.test(form.nrp.trim()) && form.gugus && form.photo && (
                 <button
                   onClick={() => downloadCardImage(form.name, previewCardRef)}
                   disabled={isDownloading}
