@@ -40,7 +40,7 @@ function ProfileCard({
     <article
       className={`profile-card w-full max-w-[720px] rounded-2xl bg-[#d9d9d9] p-5 shadow-[0_28px_80px_rgba(0,0,0,0.22)] sm:p-8 ${animationClass}`}>
       <h2
-        className={`${italiana.className} mb-5 text-center text-6xl leading-none text-black sm:text-8xl`}>
+        className={`${italiana.className} mb-5 text-center text-6xl leading-none text-[#e25700] sm:text-8xl`}>
         Kartu Maba
       </h2>
 
