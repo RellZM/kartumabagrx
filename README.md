@@ -19,4 +19,5 @@ Setiap kali halaman direfresh, semua daftar kartu akan hilang/dibersihkan otomat
 Proses upload gambar tetap dilakukan di sisi server (SSR) ke dalam public/uploads/ agar loading foto tetap optimal, namun data profilnya hanya menempel di sesi komputermu.
 
 3. Fitur Hapus Kartu
+
 Di mode Lihat List Kartu, sekarang ada sebuah tombol "X" merah di sudut kanan atas kartu yang sedang aktif. Jika kamu membuat kartu yang salah, cukup klik tombol silang tersebut dan kartu akan dihapus dari list. Jika semua kartu habis, kamu akan dikembalikan ke form pembuatan otomatis.
