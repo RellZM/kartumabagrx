@@ -107,6 +107,7 @@ function ProfileCard({
 
 export default function ClientHome() {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const previewCardRef = useRef<HTMLDivElement>(null);
   const galleryCardRef = useRef<HTMLDivElement>(null);
 
   const [profiles, setProfiles] = useState<MabaProfile[]>([]);
@@ -302,7 +303,8 @@ export default function ClientHome() {
         </h1>
 
         {!showList ? (
-          <div className="mt-10 w-full max-w-2xl mx-auto">
+          <div className="mt-10 grid w-full gap-10 lg:grid-cols-[1fr_1.1fr] items-start">
+            {/* Left: Input Form Panel */}
             <div className="w-full rounded-3xl bg-white/10 backdrop-blur-md border border-white/10 p-6 shadow-[0_20px_50px_rgba(0,0,0,0.3)] sm:p-8">
               <h2
                 className={`${italiana.className} text-3xl font-bold tracking-wide mb-6 pb-4 border-b border-white/10 text-center lg:text-left`}>
@@ -451,6 +453,42 @@ export default function ClientHome() {
                   </button>
                 )}
               </div>
+            </div>
+
+            {/* Right: Live Preview Panel */}
+            <div className="w-full flex flex-col items-center gap-6 lg:sticky lg:top-8">
+              <div ref={previewCardRef} className="w-full flex justify-center">
+                <ProfileCard
+                  profile={{
+                    id: 0,
+                    name: form.name.trim() || "NAMA LENGKAP",
+                    nrp: form.nrp.trim() || "XXXXXXXXXX",
+                    gugus: form.gugus.trim() || "NAMA GUGUS",
+                    photo: form.photo,
+                  }}
+                />
+              </div>
+
+              {form.name && form.nrp && form.gugus && form.photo && (
+                <button
+                  onClick={() => downloadCardImage(form.name, previewCardRef)}
+                  disabled={isDownloading}
+                  className="flex items-center justify-center gap-2 px-6 py-3 bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-500/50 text-white font-medium rounded-xl shadow-lg transition duration-200 active:scale-95 cursor-pointer">
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                    />
+                  </svg>
+                  {isDownloading ? "Mengunduh..." : "Download Preview PNG"}
+                </button>
+              )}
             </div>
           </div>
         ) : (
