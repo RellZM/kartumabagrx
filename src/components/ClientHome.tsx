@@ -1,9 +1,8 @@
 "use client";
 
 /* eslint-disable @next/next/no-img-element */
-import { ChangeEvent, useRef, useState, useTransition } from "react";
+import { ChangeEvent, useRef, useState, useEffect, DragEvent } from "react";
 import { Italiana, Jacquarda_Bastarda_9 } from "next/font/google";
-import { uploadImageAction } from "@/app/actions";
 
 const displayFont = Jacquarda_Bastarda_9({
   subsets: ["latin"],
@@ -48,12 +47,21 @@ function ProfileCard({
       </h2>
 
       <div className="grid gap-5 sm:grid-cols-[162px_1fr]">
-        <div className="h-56 w-full overflow-hidden bg-white sm:w-[162px]">
-          <img
-            src={profile.photo}
-            alt={`Foto ${profile.name}`}
-            className="h-full w-full object-cover"
-          />
+        <div className="h-56 w-full overflow-hidden bg-white sm:w-[162px] flex items-center justify-center">
+          {profile.photo ? (
+            <img
+              src={profile.photo}
+              alt={`Foto ${profile.name}`}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <div className="flex flex-col items-center justify-center text-[#e25700]/70 p-4 text-center h-full w-full bg-[#f2f2f2] border border-[#e0e0e0] rounded">
+              <svg className="w-12 h-12 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              <span className="text-[10px] uppercase tracking-wider font-semibold">Foto Maba</span>
+            </div>
+          )}
         </div>
 
         <dl className={`${italiana.className} grid content-start gap-4 text-[#e25700]`}>
@@ -77,6 +85,9 @@ function ProfileCard({
 
 export default function ClientHome() {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const previewCardRef = useRef<HTMLDivElement>(null);
+  const galleryCardRef = useRef<HTMLDivElement>(null);
+
   const [profiles, setProfiles] = useState<MabaProfile[]>([]);
   const [form, setForm] = useState(emptyForm);
   const [errorMsg, setErrorMsg] = useState("");
@@ -84,7 +95,23 @@ export default function ClientHome() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [direction, setDirection] = useState<"next" | "prev">("next");
   const [isExiting, setIsExiting] = useState(false);
-  const [isPending, startTransition] = useTransition();
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+
+  // Load profiles from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem("maba_profiles");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          setProfiles(parsed);
+        }
+      } catch (err) {
+        console.error("Gagal membaca maba_profiles dari localStorage:", err);
+      }
+    }
+  }, []);
 
   const updateField = (field: keyof typeof emptyForm, value: string) => {
     setForm((current) => ({ ...current, [field]: value }));
@@ -93,16 +120,38 @@ export default function ClientHome() {
 
   const handlePhotoChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
+    if (!file) return;
+    processPhotoFile(file);
+  };
 
-    if (!file) {
+  const processPhotoFile = (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      setErrorMsg("Berkas harus berupa gambar.");
       return;
     }
-
     const reader = new FileReader();
     reader.onloadend = () => {
       updateField("photo", reader.result as string);
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      processPhotoFile(file);
+    }
   };
 
   const createCard = () => {
@@ -119,47 +168,43 @@ export default function ClientHome() {
 
     setErrorMsg("");
 
-    startTransition(async () => {
-      try {
-        const formData = new FormData();
-        formData.append('photo', form.photo);
-        
-        const photoUrl = await uploadImageAction(formData);
-        
-        const nextProfile: MabaProfile = {
-          id: Date.now(),
-          name: form.name.trim(),
-          nrp: form.nrp.trim(),
-          gugus: form.gugus.trim(),
-          photo: photoUrl
-        };
+    const nextProfile: MabaProfile = {
+      id: Date.now(),
+      name: form.name.trim(),
+      nrp: form.nrp.trim(),
+      gugus: form.gugus.trim(),
+      photo: form.photo, // Base64 string from state
+    };
 
-        setProfiles((current) => {
-          const next = [...current, nextProfile];
-          setActiveIndex(next.length - 1);
-          return next;
-        });
-        
-        setDirection("next");
-        setForm(emptyForm);
-        setShowList(true);
-      } catch (err) {
-        setErrorMsg("Gagal membuat kartu, silakan coba lagi.");
-      }
-    });
+    const nextProfiles = [...profiles, nextProfile];
+    setProfiles(nextProfiles);
+    try {
+      localStorage.setItem("maba_profiles", JSON.stringify(nextProfiles));
+    } catch (err) {
+      console.error("Gagal menyimpan ke localStorage:", err);
+    }
+
+    setActiveIndex(nextProfiles.length - 1);
+    setDirection("next");
+    setForm(emptyForm);
+    setShowList(true);
   };
 
   const deleteActiveCard = () => {
-    setProfiles((current) => {
-      const next = current.filter((_, idx) => idx !== activeIndex);
-      if (next.length === 0) {
-        setShowList(false);
-        setActiveIndex(0);
-      } else if (activeIndex >= next.length) {
-        setActiveIndex(next.length - 1);
-      }
-      return next;
-    });
+    const nextProfiles = profiles.filter((_, idx) => idx !== activeIndex);
+    setProfiles(nextProfiles);
+    try {
+      localStorage.setItem("maba_profiles", JSON.stringify(nextProfiles));
+    } catch (err) {
+      console.error("Gagal menghapus dari localStorage:", err);
+    }
+
+    if (nextProfiles.length === 0) {
+      setShowList(false);
+      setActiveIndex(0);
+    } else if (activeIndex >= nextProfiles.length) {
+      setActiveIndex(nextProfiles.length - 1);
+    }
   };
 
   const changeCard = (nextIndex: number, nextDirection: "next" | "prev") => {
@@ -182,6 +227,32 @@ export default function ClientHome() {
     changeCard(nextIndex, step === 1 ? "next" : "prev");
   };
 
+  const downloadCardImage = async (name: string, ref: React.RefObject<HTMLDivElement | null>) => {
+    if (!ref.current) return;
+    setIsDownloading(true);
+    try {
+      const element = ref.current.querySelector(".profile-card") as HTMLElement || ref.current;
+      const html2canvas = (await import("html2canvas")).default;
+      const canvas = await html2canvas(element, {
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: null,
+        scale: 3, // High resolution export
+        logging: false,
+      });
+      const dataUrl = canvas.toDataURL("image/png");
+      const link = document.createElement("a");
+      link.download = `Kartu-Maba-${name.trim().replace(/\s+/g, "-")}.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (err) {
+      console.error("Gagal mendownload kartu:", err);
+      alert("Gagal mengunduh gambar kartu.");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   const activeProfile = profiles[activeIndex];
   const animationClass = isExiting
     ? direction === "next"
@@ -195,95 +266,181 @@ export default function ClientHome() {
     <main className="min-h-screen overflow-x-hidden bg-[#7300ff] px-5 py-10 text-white sm:px-8">
       <section className="mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-[1180px] flex-col items-center">
         <h1
-          className={`${displayFont.className} text-center text-[76px] leading-none sm:text-[118px] lg:text-[160px]`}
+          className={`${displayFont.className} text-center text-[76px] leading-none sm:text-[118px] lg:text-[160px] cursor-default select-none`}
         >
           KartU Maba
         </h1>
 
         {!showList ? (
-          <>
-            <div className="mt-10 w-full max-w-[720px] rounded-2xl bg-[#d9d9d9] p-5 shadow-[0_28px_80px_rgba(0,0,0,0.22)] sm:p-8">
-              <h2
-                className={`${italiana.className} mb-5 text-center text-6xl leading-none text-[#e25700] sm:text-8xl`}
-              >
-                Kartu Maba
+          <div className="mt-10 grid w-full gap-10 lg:grid-cols-[1fr_1.1fr] items-start">
+            {/* Left: Input Form Panel */}
+            <div className="w-full rounded-3xl bg-white/10 backdrop-blur-md border border-white/10 p-6 shadow-[0_20px_50px_rgba(0,0,0,0.3)] sm:p-8">
+              <h2 className={`${italiana.className} text-3xl font-bold tracking-wide mb-6 pb-4 border-b border-white/10 text-center lg:text-left`}>
+                Desain & Data Maba
               </h2>
 
-              <div className="grid gap-5 sm:grid-cols-[162px_1fr]">
-                <button
-                  type="button"
-                  aria-label="Pilih foto maba"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="relative grid h-56 w-full place-items-center overflow-hidden bg-white text-[#111] sm:w-[162px]"
-                >
-                  {form.photo ? (
-                    <img
-                      src={form.photo}
-                      alt="Preview foto maba"
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <span className="relative h-[69px] w-[69px] before:absolute before:left-1/2 before:top-0 before:h-full before:w-3 before:-translate-x-1/2 before:bg-black after:absolute after:left-0 after:top-1/2 after:h-3 after:w-full after:-translate-y-1/2 after:bg-black" />
-                  )}
-                </button>
-
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handlePhotoChange}
-                  className="sr-only"
-                />
-
-                <div className="grid content-start gap-4">
+              <div className="grid gap-6">
+                <div>
+                  <label className="block text-xs uppercase tracking-wider text-white/70 mb-2 font-semibold">
+                    Nama Lengkap
+                  </label>
                   <input
+                    type="text"
                     value={form.name}
                     onChange={(event) => updateField("name", event.target.value)}
-                    placeholder="Nama Lengkap"
-                    className={`${italiana.className} h-[63px] w-full bg-white px-5 text-center text-4xl text-black outline-none placeholder:text-black sm:text-5xl`}
-                  />
-                  <input
-                    value={form.nrp}
-                    onChange={(event) => updateField("nrp", event.target.value)}
-                    placeholder="NRP"
-                    className={`${italiana.className} h-[63px] w-full bg-white px-5 text-center text-4xl text-black outline-none placeholder:text-black sm:text-5xl`}
-                  />
-                  <input
-                    value={form.gugus}
-                    onChange={(event) =>
-                      updateField("gugus", event.target.value)
-                    }
-                    placeholder="Nama Gugus"
-                    className={`${italiana.className} h-[63px] w-full bg-white px-5 text-center text-4xl text-black outline-none placeholder:text-black sm:text-5xl`}
+                    placeholder="Contoh: Afrel Rell"
+                    className="w-full h-12 bg-white/10 border border-white/20 rounded-xl px-4 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-white/40 focus:border-transparent transition"
                   />
                 </div>
+
+                <div>
+                  <label className="block text-xs uppercase tracking-wider text-white/70 mb-2 font-semibold">
+                    NRP (10 Digit)
+                  </label>
+                  <input
+                    type="text"
+                    value={form.nrp}
+                    onChange={(event) => updateField("nrp", event.target.value)}
+                    placeholder="Contoh: 5025211001"
+                    maxLength={10}
+                    className="w-full h-12 bg-white/10 border border-white/20 rounded-xl px-4 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-white/40 focus:border-transparent transition"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs uppercase tracking-wider text-white/70 mb-2 font-semibold">
+                    Nama Gugus
+                  </label>
+                  <input
+                    type="text"
+                    value={form.gugus}
+                    onChange={(event) => updateField("gugus", event.target.value)}
+                    placeholder="Contoh: Web Developer"
+                    className="w-full h-12 bg-white/10 border border-white/20 rounded-xl px-4 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-white/40 focus:border-transparent transition"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs uppercase tracking-wider text-white/70 mb-2 font-semibold">
+                    Foto Mahasiswa
+                  </label>
+                  <div
+                    onClick={() => fileInputRef.current?.click()}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    className={`border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center cursor-pointer transition ${
+                      isDragging
+                        ? "border-white bg-white/20"
+                        : form.photo
+                        ? "border-green-400 bg-green-500/5 hover:border-green-300"
+                        : "border-white/20 bg-white/5 hover:border-white/40 hover:bg-white/10"
+                    }`}
+                  >
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handlePhotoChange}
+                      className="hidden"
+                    />
+                    {form.photo ? (
+                      <div className="flex items-center gap-4 w-full">
+                        <img
+                          src={form.photo}
+                          alt="Preview"
+                          className="w-16 h-16 object-cover rounded-lg border border-white/20 shadow-md"
+                        />
+                        <div className="text-left flex-1 min-w-0">
+                          <p className="text-xs text-white font-medium truncate">Foto terpilih</p>
+                          <p className="text-[10px] text-white/60">Klik/tarik untuk mengganti</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            updateField("photo", "");
+                          }}
+                          className="text-red-400 hover:text-red-300 text-xs px-2.5 py-1 bg-white/5 rounded-lg border border-white/10 hover:bg-white/10 transition"
+                        >
+                          Hapus
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <svg className="w-8 h-8 text-white/40 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span className="text-sm text-white/60">Klik atau seret file foto ke sini</span>
+                        <span className="text-xs text-white/40 mt-1">Mendukung format PNG, JPG, WebP</span>
+                      </>
+                    )}
+                  </div>
+                </div>
               </div>
+
               {errorMsg && (
-                <p className="mt-4 text-center text-red-500 font-bold bg-white p-2 rounded">{errorMsg}</p>
+                <p className="mt-5 text-center text-red-400 font-bold bg-red-500/10 border border-red-500/20 p-3 rounded-xl text-sm">
+                  {errorMsg}
+                </p>
               )}
-            </div>
 
-            <div className="mt-16 grid w-full max-w-[720px] gap-4">
-              <button
-                type="button"
-                onClick={createCard}
-                disabled={isPending}
-                className={`${italiana.className} h-[90px] bg-[#fffdfd] text-6xl leading-none text-[#e25700] transition hover:translate-y-[-2px] hover:bg-white sm:text-8xl disabled:opacity-50 disabled:cursor-not-allowed`}
-              >
-                {isPending ? 'Membuat...' : 'Buat Kartu'}
-              </button>
-
-              {profiles.length > 0 && (
+              <div className="mt-8 flex flex-col gap-3">
                 <button
                   type="button"
-                  onClick={() => setShowList(true)}
-                  className={`${italiana.className} h-[70px] bg-[#fffdfd] text-4xl leading-none text-[#e25700] transition hover:translate-y-[-2px] hover:bg-white sm:text-6xl`}
+                  onClick={createCard}
+                  className={`${italiana.className} w-full h-16 bg-white hover:bg-gray-100 text-2xl font-bold leading-none text-[#7300ff] rounded-xl shadow-lg transition active:scale-[0.98] cursor-pointer`}
                 >
-                  Lihat List Kartu
+                  Buat Kartu
+                </button>
+
+                {profiles.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setShowList(true)}
+                    className={`${italiana.className} w-full h-12 bg-white/10 hover:bg-white/20 text-lg leading-none text-white rounded-xl border border-white/20 transition active:scale-[0.98] cursor-pointer`}
+                  >
+                    Lihat Galeri Kartu ({profiles.length})
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Right: Live Preview Panel */}
+            <div className="w-full flex flex-col items-center gap-6 lg:sticky lg:top-8">
+              <div className="flex items-center gap-2 px-4 py-1.5 bg-white/10 border border-white/10 rounded-full">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
+                <span className="text-[11px] font-bold uppercase tracking-widest text-emerald-400">
+                  Preview Kartu Terkini
+                </span>
+              </div>
+
+              <div ref={previewCardRef} className="w-full flex justify-center">
+                <ProfileCard
+                  profile={{
+                    id: 0,
+                    name: form.name.trim() || "NAMA LENGKAP",
+                    nrp: form.nrp.trim() || "5025XXXXXX",
+                    gugus: form.gugus.trim() || "NAMA GUGUS",
+                    photo: form.photo,
+                  }}
+                />
+              </div>
+
+              {form.name && form.nrp && form.gugus && form.photo && (
+                <button
+                  onClick={() => downloadCardImage(form.name, previewCardRef)}
+                  disabled={isDownloading}
+                  className="flex items-center justify-center gap-2 px-6 py-3 bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-500/50 text-white font-medium rounded-xl shadow-lg transition duration-200 active:scale-95 cursor-pointer"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  {isDownloading ? "Mengunduh..." : "Download Preview PNG"}
                 </button>
               )}
             </div>
-          </>
+          </div>
         ) : (
           <div className="mt-10 flex w-full flex-col items-center gap-8">
             {profiles.length > 0 && activeProfile ? (
@@ -293,23 +450,25 @@ export default function ClientHome() {
                     type="button"
                     aria-label="Kartu sebelumnya"
                     onClick={() => moveCard(-1)}
-                    className={`${italiana.className} grid h-14 w-14 shrink-0 place-items-center bg-[#fffdfd] text-5xl text-[#e25700] transition hover:-translate-x-1 sm:h-[90px] sm:w-[90px] sm:text-8xl`}
+                    className={`${italiana.className} grid h-14 w-14 shrink-0 place-items-center bg-white text-5xl text-[#7300ff] rounded-full transition active:scale-95 hover:bg-gray-100 sm:h-[90px] sm:w-[90px] sm:text-8xl shadow-lg cursor-pointer`}
                   >
                     &lsaquo;
                   </button>
 
                   <div className="relative w-full max-w-[720px]">
-                    <ProfileCard
-                      key={activeProfile.id}
-                      profile={activeProfile}
-                      animationClass={animationClass}
-                    />
+                    <div ref={galleryCardRef}>
+                      <ProfileCard
+                        key={activeProfile.id}
+                        profile={activeProfile}
+                        animationClass={animationClass}
+                      />
+                    </div>
                     <button
                       onClick={deleteActiveCard}
-                      className="absolute -top-4 -right-4 bg-red-600 hover:bg-red-700 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold shadow-lg z-10 transition-transform hover:scale-110"
+                      className="absolute -top-4 -right-4 bg-red-600 hover:bg-red-700 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold shadow-lg z-10 transition hover:scale-110 cursor-pointer"
                       title="Hapus Kartu"
                     >
-                      X
+                      ✕
                     </button>
                   </div>
 
@@ -317,7 +476,7 @@ export default function ClientHome() {
                     type="button"
                     aria-label="Kartu berikutnya"
                     onClick={() => moveCard(1)}
-                    className={`${italiana.className} grid h-14 w-14 shrink-0 place-items-center bg-[#fffdfd] text-5xl text-[#e25700] transition hover:translate-x-1 sm:h-[90px] sm:w-[90px] sm:text-8xl`}
+                    className={`${italiana.className} grid h-14 w-14 shrink-0 place-items-center bg-white text-5xl text-[#7300ff] rounded-full transition active:scale-95 hover:bg-gray-100 sm:h-[90px] sm:w-[90px] sm:text-8xl shadow-lg cursor-pointer`}
                   >
                     &rsaquo;
                   </button>
@@ -332,7 +491,7 @@ export default function ClientHome() {
                       onClick={() =>
                         changeCard(index, index > activeIndex ? "next" : "prev")
                       }
-                      className={`h-3 transition-all ${
+                      className={`h-3 transition-all rounded-full cursor-pointer ${
                         index === activeIndex
                           ? "w-14 bg-white"
                           : "w-3 bg-white/50 hover:bg-white"
@@ -340,18 +499,40 @@ export default function ClientHome() {
                     />
                   ))}
                 </div>
+
+                <div className="flex flex-wrap items-center gap-4 mt-4">
+                  <button
+                    onClick={() => downloadCardImage(activeProfile.name, galleryCardRef)}
+                    disabled={isDownloading}
+                    className="flex items-center justify-center gap-2 px-8 py-3.5 bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-500/50 text-white font-semibold rounded-xl shadow-lg transition active:scale-95 cursor-pointer"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    {isDownloading ? "Mengunduh..." : "Download Gambar Kartu"}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setShowList(false)}
+                    className={`${italiana.className} h-[52px] px-8 bg-white/10 hover:bg-white/20 text-2xl leading-none text-white rounded-xl border border-white/20 transition active:scale-95 cursor-pointer`}
+                  >
+                    Buat Kartu Baru
+                  </button>
+                </div>
               </>
             ) : (
-              <p className="text-2xl text-white">Belum ada kartu</p>
+              <div className="text-center py-10">
+                <p className="text-2xl text-white/70 mb-4">Belum ada kartu maba yang dibuat</p>
+                <button
+                  type="button"
+                  onClick={() => setShowList(false)}
+                  className={`${italiana.className} h-[60px] px-8 bg-white text-2xl leading-none text-[#7300ff] rounded-xl hover:bg-gray-100 transition cursor-pointer`}
+                >
+                  Mulai Membuat
+                </button>
+              </div>
             )}
-
-            <button
-              type="button"
-              onClick={() => setShowList(false)}
-              className={`${italiana.className} h-[70px] w-full max-w-[420px] bg-[#fffdfd] text-4xl leading-none text-[#e25700] transition hover:translate-y-[-2px] hover:bg-white sm:text-6xl`}
-            >
-              Buat Lagi
-            </button>
           </div>
         )}
       </section>
