@@ -264,15 +264,17 @@ export default function ClientHome() {
       const element =
         (ref.current.querySelector(".profile-card") as HTMLElement) ||
         ref.current;
-      const html2canvas = (await import("html2canvas")).default;
-      const canvas = await html2canvas(element, {
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: null,
-        scale: 3, // High resolution export
-        logging: false,
+
+      // Wait for fonts to fully load before capturing
+      await document.fonts.ready;
+
+      const { toPng } = await import("html-to-image");
+      const dataUrl = await toPng(element, {
+        cacheBust: true,
+        pixelRatio: 3, // High resolution export
+        skipFonts: false,
       });
-      const dataUrl = canvas.toDataURL("image/png");
+
       const link = document.createElement("a");
       link.download = `Kartu-Maba-${name.trim().replace(/\s+/g, "-")}.png`;
       link.href = dataUrl;
