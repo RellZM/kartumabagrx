@@ -38,9 +38,11 @@ function ProfileCard({
 }) {
   return (
     <article
-      className={`profile-card w-full max-w-[720px] rounded-2xl bg-[#d9d9d9] p-5 shadow-[0_28px_80px_rgba(0,0,0,0.22)] sm:p-8 ${animationClass}`}>
+      className={`profile-card w-full max-w-[720px] rounded-2xl bg-[#d9d9d9] p-5 shadow-[0_28px_80px_rgba(0,0,0,0.22)] sm:p-8 ${animationClass}`}
+    >
       <h2
-        className={`${italiana.className} mb-5 text-center text-6xl leading-none text-black sm:text-8xl`}>
+        className={`${italiana.className} mb-5 text-center text-6xl leading-none text-black sm:text-8xl`}
+      >
         Kartu Maba
       </h2>
 
@@ -54,50 +56,26 @@ function ProfileCard({
             />
           ) : (
             <div className="flex flex-col items-center justify-center text-[#e25700]/70 p-4 text-center h-full w-full bg-[#f2f2f2] border border-[#e0e0e0] rounded">
-              <svg
-                className="w-12 h-12 mb-1"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                />
+              <svg className="w-12 h-12 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
-              <span className="text-[10px] uppercase tracking-wider font-semibold">
-                Foto Maba
-              </span>
+              <span className="text-[10px] uppercase tracking-wider font-semibold">Foto Maba</span>
             </div>
           )}
         </div>
 
-        <dl
-          className={`${italiana.className} grid content-start gap-4 text-black`}>
+        <dl className={`${italiana.className} grid content-start gap-4 text-black`}>
           <div className="bg-white px-5 h-[63px] flex flex-col justify-center text-center">
-            <dt className="text-[10px] sm:text-xs text-gray-500 uppercase tracking-wider mb-0.5">
-              Nama Lengkap
-            </dt>
-            <dd className="truncate text-3xl sm:text-4xl leading-none">
-              {profile.name}
-            </dd>
+            <dt className="text-[10px] sm:text-xs text-gray-500 uppercase tracking-wider mb-0.5">Nama Lengkap</dt>
+            <dd className="truncate text-3xl sm:text-4xl leading-none">{profile.name}</dd>
           </div>
           <div className="bg-white px-5 h-[63px] flex flex-col justify-center text-center">
-            <dt className="text-[10px] sm:text-xs text-gray-500 uppercase tracking-wider mb-0.5">
-              NRP
-            </dt>
-            <dd className="truncate text-3xl sm:text-4xl leading-none">
-              {profile.nrp}
-            </dd>
+            <dt className="text-[10px] sm:text-xs text-gray-500 uppercase tracking-wider mb-0.5">NRP</dt>
+            <dd className="truncate text-3xl sm:text-4xl leading-none">{profile.nrp}</dd>
           </div>
           <div className="bg-white px-5 h-[63px] flex flex-col justify-center text-center">
-            <dt className="text-[10px] sm:text-xs text-gray-500 uppercase tracking-wider mb-0.5">
-              Nama Gugus
-            </dt>
-            <dd className="truncate text-3xl sm:text-4xl leading-none">
-              {profile.gugus}
-            </dd>
+            <dt className="text-[10px] sm:text-xs text-gray-500 uppercase tracking-wider mb-0.5">Nama Gugus</dt>
+            <dd className="truncate text-3xl sm:text-4xl leading-none">{profile.gugus}</dd>
           </div>
         </dl>
       </div>
@@ -178,12 +156,7 @@ export default function ClientHome() {
 
   const createCard = () => {
     // Validations
-    if (
-      !form.name.trim() ||
-      !form.nrp.trim() ||
-      !form.gugus.trim() ||
-      !form.photo
-    ) {
+    if (!form.name.trim() || !form.nrp.trim() || !form.gugus.trim() || !form.photo) {
       setErrorMsg("Semua kolom (termasuk foto) harus diisi terlebih dahulu.");
       return;
     }
@@ -254,16 +227,11 @@ export default function ClientHome() {
     changeCard(nextIndex, step === 1 ? "next" : "prev");
   };
 
-  const downloadCardImage = async (
-    name: string,
-    ref: React.RefObject<HTMLDivElement | null>,
-  ) => {
+  const downloadCardImage = async (name: string, ref: React.RefObject<HTMLDivElement | null>) => {
     if (!ref.current) return;
     setIsDownloading(true);
     try {
-      const element =
-        (ref.current.querySelector(".profile-card") as HTMLElement) ||
-        ref.current;
+      const element = ref.current.querySelector(".profile-card") as HTMLElement || ref.current;
       const html2canvas = (await import("html2canvas")).default;
       const canvas = await html2canvas(element, {
         useCORS: true,
@@ -298,7 +266,8 @@ export default function ClientHome() {
     <main className="min-h-screen overflow-x-hidden bg-[#7300ff] px-5 py-10 text-white sm:px-8">
       <section className="mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-[1180px] flex-col items-center">
         <h1
-          className={`${displayFont.className} text-center text-[76px] leading-none sm:text-[118px] lg:text-[160px] cursor-default select-none`}>
+          className={`${displayFont.className} text-center text-[76px] leading-none sm:text-[118px] lg:text-[160px] cursor-default select-none`}
+        >
           KartU Maba
         </h1>
 
@@ -306,9 +275,8 @@ export default function ClientHome() {
           <div className="mt-10 grid w-full gap-10 lg:grid-cols-[1fr_1.1fr] items-start">
             {/* Left: Input Form Panel */}
             <div className="w-full rounded-3xl bg-white/10 backdrop-blur-md border border-white/10 p-6 shadow-[0_20px_50px_rgba(0,0,0,0.3)] sm:p-8">
-              <h2
-                className={`${italiana.className} text-3xl font-bold tracking-wide mb-6 pb-4 border-b border-white/10 text-center lg:text-left`}>
-                Isi Data
+              <h2 className={`${italiana.className} text-3xl font-bold tracking-wide mb-6 pb-4 border-b border-white/10 text-center lg:text-left`}>
+                Desain & Data Maba
               </h2>
 
               <div className="grid gap-6">
@@ -319,10 +287,8 @@ export default function ClientHome() {
                   <input
                     type="text"
                     value={form.name}
-                    onChange={(event) =>
-                      updateField("name", event.target.value)
-                    }
-                    placeholder="Contoh: Atsumu Miya"
+                    onChange={(event) => updateField("name", event.target.value)}
+                    placeholder="Contoh: Afrel Rell"
                     className="w-full h-12 bg-white/10 border border-white/20 rounded-xl px-4 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-white/40 focus:border-transparent transition"
                   />
                 </div>
@@ -348,10 +314,8 @@ export default function ClientHome() {
                   <input
                     type="text"
                     value={form.gugus}
-                    onChange={(event) =>
-                      updateField("gugus", event.target.value)
-                    }
-                    placeholder="Contoh: Maniak Vibecoding"
+                    onChange={(event) => updateField("gugus", event.target.value)}
+                    placeholder="Contoh: Web Developer"
                     className="w-full h-12 bg-white/10 border border-white/20 rounded-xl px-4 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-white/40 focus:border-transparent transition"
                   />
                 </div>
@@ -369,9 +333,10 @@ export default function ClientHome() {
                       isDragging
                         ? "border-white bg-white/20"
                         : form.photo
-                          ? "border-green-400 bg-green-500/5 hover:border-green-300"
-                          : "border-white/20 bg-white/5 hover:border-white/40 hover:bg-white/10"
-                    }`}>
+                        ? "border-green-400 bg-green-500/5 hover:border-green-300"
+                        : "border-white/20 bg-white/5 hover:border-white/40 hover:bg-white/10"
+                    }`}
+                  >
                     <input
                       ref={fileInputRef}
                       type="file"
@@ -387,12 +352,8 @@ export default function ClientHome() {
                           className="w-16 h-16 object-cover rounded-lg border border-white/20 shadow-md"
                         />
                         <div className="text-left flex-1 min-w-0">
-                          <p className="text-xs text-white font-medium truncate">
-                            Foto terpilih
-                          </p>
-                          <p className="text-[10px] text-white/60">
-                            Klik/tarik untuk mengganti
-                          </p>
+                          <p className="text-xs text-white font-medium truncate">Foto terpilih</p>
+                          <p className="text-[10px] text-white/60">Klik/tarik untuk mengganti</p>
                         </div>
                         <button
                           type="button"
@@ -400,30 +361,18 @@ export default function ClientHome() {
                             e.stopPropagation();
                             updateField("photo", "");
                           }}
-                          className="text-red-400 hover:text-red-300 text-xs px-2.5 py-1 bg-white/5 rounded-lg border border-white/10 hover:bg-white/10 transition">
+                          className="text-red-400 hover:text-red-300 text-xs px-2.5 py-1 bg-white/5 rounded-lg border border-white/10 hover:bg-white/10 transition"
+                        >
                           Hapus
                         </button>
                       </div>
                     ) : (
                       <>
-                        <svg
-                          className="w-8 h-8 text-white/40 mb-2"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24">
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                          />
+                        <svg className="w-8 h-8 text-white/40 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
-                        <span className="text-sm text-white/60">
-                          Klik atau seret file foto ke sini
-                        </span>
-                        <span className="text-xs text-white/40 mt-1">
-                          Mendukung format PNG, JPG, WebP
-                        </span>
+                        <span className="text-sm text-white/60">Klik atau seret file foto ke sini</span>
+                        <span className="text-xs text-white/40 mt-1">Mendukung format PNG, JPG, WebP</span>
                       </>
                     )}
                   </div>
@@ -440,7 +389,8 @@ export default function ClientHome() {
                 <button
                   type="button"
                   onClick={createCard}
-                  className={`${italiana.className} w-full h-16 bg-white hover:bg-gray-100 text-2xl font-bold leading-none text-[#7300ff] rounded-xl shadow-lg transition active:scale-[0.98] cursor-pointer`}>
+                  className={`${italiana.className} w-full h-16 bg-white hover:bg-gray-100 text-2xl font-bold leading-none text-[#7300ff] rounded-xl shadow-lg transition active:scale-[0.98] cursor-pointer`}
+                >
                   Buat Kartu
                 </button>
 
@@ -448,7 +398,8 @@ export default function ClientHome() {
                   <button
                     type="button"
                     onClick={() => setShowList(true)}
-                    className={`${italiana.className} w-full h-12 bg-white/10 hover:bg-white/20 text-lg leading-none text-white rounded-xl border border-white/20 transition active:scale-[0.98] cursor-pointer`}>
+                    className={`${italiana.className} w-full h-12 bg-white/10 hover:bg-white/20 text-lg leading-none text-white rounded-xl border border-white/20 transition active:scale-[0.98] cursor-pointer`}
+                  >
                     Lihat Galeri Kartu ({profiles.length})
                   </button>
                 )}
@@ -469,7 +420,7 @@ export default function ClientHome() {
                   profile={{
                     id: 0,
                     name: form.name.trim() || "NAMA LENGKAP",
-                    nrp: form.nrp.trim() || "XXXXXXXXXX",
+                    nrp: form.nrp.trim() || "5025XXXXXX",
                     gugus: form.gugus.trim() || "NAMA GUGUS",
                     photo: form.photo,
                   }}
@@ -480,18 +431,10 @@ export default function ClientHome() {
                 <button
                   onClick={() => downloadCardImage(form.name, previewCardRef)}
                   disabled={isDownloading}
-                  className="flex items-center justify-center gap-2 px-6 py-3 bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-500/50 text-white font-medium rounded-xl shadow-lg transition duration-200 active:scale-95 cursor-pointer">
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                    />
+                  className="flex items-center justify-center gap-2 px-6 py-3 bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-500/50 text-white font-medium rounded-xl shadow-lg transition duration-200 active:scale-95 cursor-pointer"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                   </svg>
                   {isDownloading ? "Mengunduh..." : "Download Preview PNG"}
                 </button>
@@ -507,7 +450,8 @@ export default function ClientHome() {
                     type="button"
                     aria-label="Kartu sebelumnya"
                     onClick={() => moveCard(-1)}
-                    className={`${italiana.className} grid h-14 w-14 shrink-0 place-items-center bg-white text-5xl text-[#7300ff] rounded-full transition active:scale-95 hover:bg-gray-100 sm:h-[90px] sm:w-[90px] sm:text-8xl shadow-lg cursor-pointer`}>
+                    className={`${italiana.className} grid h-14 w-14 shrink-0 place-items-center bg-white text-5xl text-[#7300ff] rounded-full transition active:scale-95 hover:bg-gray-100 sm:h-[90px] sm:w-[90px] sm:text-8xl shadow-lg cursor-pointer`}
+                  >
                     &lsaquo;
                   </button>
 
@@ -522,7 +466,8 @@ export default function ClientHome() {
                     <button
                       onClick={deleteActiveCard}
                       className="absolute -top-4 -right-4 bg-red-600 hover:bg-red-700 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold shadow-lg z-10 transition hover:scale-110 cursor-pointer"
-                      title="Hapus Kartu">
+                      title="Hapus Kartu"
+                    >
                       ✕
                     </button>
                   </div>
@@ -531,7 +476,8 @@ export default function ClientHome() {
                     type="button"
                     aria-label="Kartu berikutnya"
                     onClick={() => moveCard(1)}
-                    className={`${italiana.className} grid h-14 w-14 shrink-0 place-items-center bg-white text-5xl text-[#7300ff] rounded-full transition active:scale-95 hover:bg-gray-100 sm:h-[90px] sm:w-[90px] sm:text-8xl shadow-lg cursor-pointer`}>
+                    className={`${italiana.className} grid h-14 w-14 shrink-0 place-items-center bg-white text-5xl text-[#7300ff] rounded-full transition active:scale-95 hover:bg-gray-100 sm:h-[90px] sm:w-[90px] sm:text-8xl shadow-lg cursor-pointer`}
+                  >
                     &rsaquo;
                   </button>
                 </div>
@@ -556,22 +502,12 @@ export default function ClientHome() {
 
                 <div className="flex flex-wrap items-center gap-4 mt-4">
                   <button
-                    onClick={() =>
-                      downloadCardImage(activeProfile.name, galleryCardRef)
-                    }
+                    onClick={() => downloadCardImage(activeProfile.name, galleryCardRef)}
                     disabled={isDownloading}
-                    className="flex items-center justify-center gap-2 px-8 py-3.5 bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-500/50 text-white font-semibold rounded-xl shadow-lg transition active:scale-95 cursor-pointer">
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                      />
+                    className="flex items-center justify-center gap-2 px-8 py-3.5 bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-500/50 text-white font-semibold rounded-xl shadow-lg transition active:scale-95 cursor-pointer"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                     </svg>
                     {isDownloading ? "Mengunduh..." : "Download Gambar Kartu"}
                   </button>
@@ -579,20 +515,20 @@ export default function ClientHome() {
                   <button
                     type="button"
                     onClick={() => setShowList(false)}
-                    className={`${italiana.className} h-[52px] px-8 bg-white/10 hover:bg-white/20 text-2xl leading-none text-white rounded-xl border border-white/20 transition active:scale-95 cursor-pointer`}>
+                    className={`${italiana.className} h-[52px] px-8 bg-white/10 hover:bg-white/20 text-2xl leading-none text-white rounded-xl border border-white/20 transition active:scale-95 cursor-pointer`}
+                  >
                     Buat Kartu Baru
                   </button>
                 </div>
               </>
             ) : (
               <div className="text-center py-10">
-                <p className="text-2xl text-white/70 mb-4">
-                  Belum ada kartu maba yang dibuat
-                </p>
+                <p className="text-2xl text-white/70 mb-4">Belum ada kartu maba yang dibuat</p>
                 <button
                   type="button"
                   onClick={() => setShowList(false)}
-                  className={`${italiana.className} h-[60px] px-8 bg-white text-2xl leading-none text-[#7300ff] rounded-xl hover:bg-gray-100 transition cursor-pointer`}>
+                  className={`${italiana.className} h-[60px] px-8 bg-white text-2xl leading-none text-[#7300ff] rounded-xl hover:bg-gray-100 transition cursor-pointer`}
+                >
                   Mulai Membuat
                 </button>
               </div>
